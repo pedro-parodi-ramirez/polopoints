@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scoreboard</title>
+    <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+
+<body>
+    <div>
+        <h1>PoloPoints</h1>
+        <span id="dot-status" class="dot"></span>
+    </div>
+    <hr>
+    <div id="game-state-mark">
+        <h3 id="game-state-title">CHUKKER 1</h3>
+    </div>
+    <div class="row">        
+        <div class="col-4 align-items-start">
+            <h3>LOCAL</h3>
+            <button id="up-local" class="btn-up-down-scores">+</button>
+            <button id="down-local" class="btn-up-down-scores">-</button>
+            <div class="value">
+                <output id="local"></output>
+            </div>
+        </div>
+        <div class="col-4 align-items-middle">
+            <h3>CHUKKER</h3>
+            <button id="up-chukker" class="btn-up-down-scores">+</button>
+            <button id="down-chukker" class="btn-up-down-scores">-</button>
+            <div class="value">
+                <output id="chukker"></output>
+            </div>
+        </div>
+        <div class="col-4 align-items-end">
+            <h3>VISITANTE</h3>
+            <button id="up-visitor" class="btn-up-down-scores">+</button>
+            <button id="down-visitor" class="btn-up-down-scores">-</button>
+            <div class="value">
+                <output id="visitor"></output>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="box">
+            <h3>TIMER</h3>
+            <div>
+                <button id="start-timer" class="green btn-play-stop">&#9658</button>
+                <button id="stop-timer" class="orange btn-play-stop">||</button>
+            </div>
+            <div class="value">
+                <output id="timer-mm"></output>
+                <span>:</span>
+                <output id="timer-ss"></output>
+            </div>
+            <hr>
+            <div>
+                <button id="up-minute" class="btn-up-down-timer">+</button>
+                <button id="down-minute" class="btn-up-down-timer">-</button>
+                <span style="font-size: 2rem;">|</span>
+                <button id="up-second" class="btn-up-down-timer">+</button>
+                <button id="down-second" class="btn-up-down-timer">-</button>
+            </div>
+            <hr>
+            <div>
+                <button id="set-default-timer" class="btn-timer-options yellow">Guardar</button>
+                <button id="reset-timer" class="btn-timer-options yellow">Reiniciar</button>
+            </div>
+        </div>
+    </div>
+    <hr>
+    <button id="reset-all" class="red btn-reset-all">Reiniciar tablero</button>
+    <script src="worker.js"></script>
+    <script src="index.js"></script>
+</body>
+</html>
