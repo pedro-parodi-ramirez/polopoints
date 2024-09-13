@@ -424,8 +424,6 @@ void loop()
 {
   byte bufferTx[TX_MAX_LENGHT];
   byte dataFrame[DATA_FRAME_ROWS];
-  //bool init = false;
-  byte i;
   
   /*********************************************************************************/
   /****************************** STATE MACHINE LOOP *******************************/
@@ -453,10 +451,7 @@ void loop()
     case INIT:
       if(LOG_TO_CONSOLE){ Serial.println("Inicializando tablero ..."); }
       setDataFrameHeaders(dataFrame);
-      for(i=0;i<5;i++){
-        refreshScoreboard(&scoreboard, dataFrame, bufferTx);
-        delay(1000);
-      }
+      delay(5000);
       //do{
       //  refreshScoreboard(&scoreboard, dataFrame, bufferTx); // nuevo intento de inicializar tablero
       //  if(Serial.available()){
@@ -576,11 +571,11 @@ timer_state_t refreshTimer()
       scoreboard.timer.value.mm--;
     }
   }
-  else if(game_state != HALFTIME && scoreboard.timer.value.mm == 0 && scoreboard.timer.value.ss == 30){
+  /*else if(game_state != HALFTIME && scoreboard.timer.value.mm == 0 && scoreboard.timer.value.ss == 30){
     // A los 30 segundos vuelve a sonar la alarma
     alarm_obj.enabled = true;
     startAlarm();
-  }
+  }*/
   return RUNNING;
 }
 
