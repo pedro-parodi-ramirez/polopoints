@@ -1,0 +1,225 @@
+html {
+  font-family: Helvetica;
+  display: inline-block;
+  margin: 0px auto;
+  text-align: center;
+}
+
+body{
+  width: 320px;
+  margin: auto;
+}
+
+h1{
+  display: inline-block;
+  font-size: 3.4rem;
+  font-family: "Trebuchet MS", Verdana, sans-serif;
+  text-shadow:
+    1px 1px 1px lightslategray,
+    2px 2px 1px lightslategray;
+  margin: 8px auto 0 auto;
+}
+
+.dot {
+  height: 25px;
+  width: 25px;
+  margin: auto auto auto 8px;
+  background-color: red;
+  border: 1px solid black;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+h3{
+  margin: 4px 0 8px 0;
+  font-size: 1.2rem;
+}
+
+#game-state-title{
+  margin: 0px;
+  border-radius: 8px;
+  padding: 4px 4px;
+  background-color: #9ACD32;
+  color: black;
+}
+
+.row{
+  margin: auto;
+}
+
+.col{
+  display: inline-block;
+  margin: auto;
+}
+
+.col-4{
+  display: inline-block;
+  width: 30%;
+  margin: 0.2rem;
+}
+
+.align-items-start{
+  align-items: start;
+}
+
+.align-items-middle{
+  align-items: middle;
+}
+
+.align-items-end{
+  align-items: end;
+}
+
+button{
+  color: white;
+  font-size: 1rem;
+  border: 2px solid #00008B;
+  background-color: #008CBA;;  
+  padding: 4px 0px;
+  margin: 2px 0 0px 0;
+}
+
+button:disabled,
+button[disabled]{
+  border: 1px solid #999999;
+  background-color: #cccccc;
+  color: #666666;
+}
+
+.btn-up-down-scores{
+  margin: 0px;
+  padding: 0px;
+  font-size: 2rem;
+  background-color: transparent;
+  border: 0px;
+}
+
+.btn-play-stop{
+  width: 100px;
+  height: 60px;
+  margin: auto 4px;
+  font-size: 2rem;
+}
+
+.btn-reset-all{
+  width: 120px;
+  font-size: 1.5rem;
+  margin-right: 12px;
+  border-radius: 8px;
+}
+
+.btn-config{
+  width: 90px;
+  font-size: 1.5rem;
+  margin-left: 12px;
+  border-radius: 8px;
+}
+
+.box{
+  border: 1px solid black;
+  background-color: #DCDCDC;
+  margin: 0.8rem 1rem;
+  padding: 0.5rem 0.5rem;
+  border-radius: 8px;
+}
+
+.value{
+  margin: 0 0;
+  font-size: 3.5rem;
+  font-weight: bold;
+}
+
+.btn-up-down-timer{
+  width: 50px;
+  margin: auto 4px;
+  border-radius: 12px;
+  font-size: 2rem;
+}
+
+.vl{
+  display: inline-block;
+  border-left: 2px solid black;
+  height: 50px;
+  margin: 2px 0 0 0;
+}
+
+.btn-board-config{
+  width: 120px;
+  margin: auto 4px;
+  font-size: 1.5rem;
+  border-radius: 8px;
+}
+
+.btn-reset-chukker{
+  font-size: 2rem;
+  color: black;
+  margin: 0px;
+  padding: 0px;
+  border: 0px;
+  background-color: transparent;
+}
+
+.orange{
+  border: 2px solid #B22222;
+  background-color: #FF4500;
+}
+
+.red{
+  border: 2px solid #8B0000;
+  background-color: #FF0000;
+}
+
+.dark-red{
+  border: 2px solid #8B0000;
+  background-color: #A52A2A;
+}
+
+.green{
+  border: 2px solid #006400;
+  background-color: #228B22;
+}
+
+.light-blue{
+  border: 2px solid #4169E1;
+  background-color: #6495ED;
+}
+
+.grey{
+  border: 2px solid #2F4F4F;
+  background-color: #778899;
+}
+
+select {
+  width: 80px;
+  height: 36px;
+  text-align: center;
+  font-size: 1.2rem;
+  border-radius: 4px;
+}
+
+.time-configs{
+  text-align: center;
+  width: 48px;
+  height: 30px;
+  font-size: 1.2rem;
+}
+
+.span-time-configs{
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin: 1px;
+}
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input{
+  border: solid 1px;
+  border-radius: 4px;
+}
+
+h2{
+  margin: 14px auto;
+}

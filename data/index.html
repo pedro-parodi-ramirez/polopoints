@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scoreboard</title>
+    <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+
+<body>
+    <div>
+        <h1>PoloPoints</h1>
+        <span id="dot-status" class="dot"></span>
+    </div>
+    <hr>
+    <div id="div-main">
+        <div id="game-state-mark">
+            <h3 id="game-state-title">CHUKKER 1</h3>
+        </div>
+        <div class="row">        
+            <div class="col-4 align-items-start">
+                <h3>LOCAL</h3>
+                <button id="up-local" class="btn-up-down-scores">🔼</button>
+                <div class="value">
+                    <output id="local"></output>
+                </div>
+                <button id="down-local" class="btn-up-down-scores">🔽</button>
+            </div>
+            <div class="col-4 align-items-middle">
+                <h3>CHUKKER</h3>
+                <button id="up-chukker" class="btn-up-down-scores">🔼</button>
+                <div class="value">
+                    <output id="chukker"></output>
+                </div>
+                <button id="down-chukker" class="btn-up-down-scores">🔽</button>
+            </div>
+            <div class="col-4 align-items-end">
+                <h3>VISITANTE</h3>
+                <button id="up-visitor" class="btn-up-down-scores">🔼</button>
+                <div class="value">
+                    <output id="visitor"></output>
+                </div>
+                <button id="down-visitor" class="btn-up-down-scores">🔽</button>
+            </div>
+        </div>
+        <div class="row">
+            <div class="box">
+                <h3>TIMER</h3>
+                <div>
+                    <button id="start-timer" class="green btn-play-stop">&#9658</button>
+                    <button id="stop-timer" class="orange btn-play-stop">||</button>
+                </div>
+                <div class="value">
+                    <output id="timer-mm"></output>
+                    <span>:</span>
+                    <output id="timer-ss"></output>
+                </div>
+                <hr>
+                <div>
+                    <button id="up-minute" class="btn-up-down-timer">+</button>
+                    <button id="down-minute" class="btn-up-down-timer">-</button>
+                    <span style="font-size: 2rem;">|</span>
+                    <button id="up-second" class="btn-up-down-timer">+</button>
+                    <button id="down-second" class="btn-up-down-timer">-</button>
+                </div>
+                <hr>
+                <button id="reset-chukker" class="btn-reset-chukker">🔄</button>
+            </div>
+        </div>
+        <hr>
+        <button id="reset-all" class="dark-red btn-reset-all">Reiniciar</button>
+        <button id="btn-config" class="grey btn-config">Config</button>
+    </div>
+    <div id="div-config" style="display:none">
+        <div class="row">
+            <div class="box">
+                <div class="row">
+                    <h2><u>Brillo:</u></h2>
+                    <select name="brightess" id="select-brightess">
+                        <option value=0x01>10%</option>
+                        <option value=0x02>20%</option>
+                        <option value=0x03>30%</option>
+                        <option value=0x04>40%</option>
+                        <option value=0x05>50%</option>
+                        <option value=0x06>60%</option>
+                        <option value=0x07>70%</option>
+                        <option value=0x08>80%</option>
+                        <option value=0x09>90%</option>
+                        <option value=0x0A>100%</option>
+                    </select>
+                </div>
+                <div class="row">
+                    <h2><u>Duración alarma:</u></h2>
+                    <select name="alarm-len" id="select-alarm-len">
+                        <option value="1">1s</option>
+                        <option value="2">2s</option>
+                        <option value="3">3s</option>
+                        <option value="4">4s</option>
+                        <option value="5">5s</option>
+                    </select>
+                </div>
+                <div class="row">
+                    <h2><u>Largo de chukker:</u></h2>
+                    <input id="chukker-len-mm" class="time-configs" type="number"><span class="span-time-configs">:</span><input id="chukker-len-ss" class="time-configs" type="number">
+                </div>
+                <div class="row">
+                    <h2><u>Tiempo extendido:</u></h2>
+                    <input id="ext-time-len-mm" class="time-configs" type="number"><span class="span-time-configs">:</span><input id="ext-time-len-ss" class="time-configs" type="number">
+                </div>
+                <div class="row">
+                    <h2><u>Intervalo:</u></h2>
+                    <input id="halftime-len-mm" class="time-configs" type="number"><span class="span-time-configs">:</span><input id="halftime-len-ss" class="time-configs" type="number">
+                </div>
+            </div>
+        </div>
+        <hr>
+        <button id="btn-save-config" class="btn-board-config green">Guardar</button>
+        <button id="btn-back-to-main" class="btn-board-config light-blue">Volver</button>
+    </div>
+    <script src="worker.js"></script>
+    <script src="index.js"></script>
+</body>
+</html>
