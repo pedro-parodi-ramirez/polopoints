@@ -33,6 +33,7 @@ const btnDownChukker = document.getElementById('down-chukker');
 const btnStartTimer = document.getElementById('start-timer');
 const btnStopTimer = document.getElementById('stop-timer');
 const btnResetChukker = document.getElementById('reset-chukker');
+const btnTriggerHorn = document.getElementById('trigger-horn');
 const btnResetAll = document.getElementById('reset-all');
 const btnUpMinute = document.getElementById('up-minute');
 const btnDownMinute = document.getElementById('down-minute');
@@ -50,6 +51,7 @@ const btnConfig = document.getElementById('btn-config');
 const btnSaveConfig = document.getElementById('btn-save-config');
 const btnBackToMain = document.getElementById('btn-back-to-main');
 const selectBrightness = document.getElementById('select-brightess');
+const selectAlarmEnable = document.getElementById('select-alarm-enable');
 const selectAlarmLen = document.getElementById('select-alarm-len');
 const chukkerLenMM = document.getElementById('chukker-len-mm');
 const chukkerLenSS = document.getElementById('chukker-len-ss');
@@ -74,14 +76,15 @@ const command = {
     DEC_CHUKKER:            6,
     START_TIMER:            7,
     STOP_TIMER:             8,
-    RESET_TIMER:            9,
+    RESET_CHUKKER:          9,
     SET_CURRENT_TIMER:      10,
     SET_DEFAULT_TIMER:      11,
     SET_EXTENDED_TIMER:     12,
     SET_HALFTIME_TIMER:     13,
     RESET_ALL:              14,
     SET_CONFIG:             15,
-    GET_CONFIG:             16
+    GET_CONFIG:             16,
+    TRIGGER_HORN:           17
 };
 
 const dataIndex = {
@@ -96,13 +99,14 @@ const dataIndex = {
 
 const configIndex = {
     BRIGHTNESS:     0,
-    ALARM_LEN:      1,
-    CHUKKER_MM:     2,
-    CHUKKER_SS:     3,
-    EXT_TIME_MM:    4,
-    EXT_TIME_SS:    5,
-    HALFTIME_MM:    6,
-    HALFTIME_SS:    7
+    ALARM_EN:       1,
+    ALARM_LEN:      2,
+    CHUKKER_MM:     3,
+    CHUKKER_SS:     4,
+    EXT_TIME_MM:    5,
+    EXT_TIME_SS:    6,
+    HALFTIME_MM:    7,
+    HALFTIME_SS:    8
 }
 
 /* -------------------------------------------------------------------------------------------------------------- */
@@ -215,7 +219,7 @@ btnDownSecond.addEventListener('click', async () => {
 });
 
 btnResetChukker.addEventListener('click', async () => {
-    const rawResponse = await fetch(`http://${app.domain}/timer?cmd=${command.RESET_TIMER}`);
+    const rawResponse = await fetch(`http://${app.domain}/reset?cmd=${command.RESET_CHUKKER}`);
     if (rawResponse.status === STATUS.ACCEPTED) {
         const response = await rawResponse.text();
         setScoreboardValues(response);
@@ -225,9 +229,15 @@ btnResetChukker.addEventListener('click', async () => {
     else { alert('Algo salió mal.'); }
 });
 
+btnTriggerHorn.addEventListener('click', async () => {
+    const rawResponse = await fetch(`http://${app.domain}/horn?cmd=${command.TRIGGER_HORN}`);
+    if (rawResponse.status !== STATUS.ACCEPTED)
+        alert('Algo salió mal.');
+});
+
 // Reset all
 btnResetAll.addEventListener('click', async () => {
-    const rawResponse = await fetch(`http://${app.domain}/reset`);
+    const rawResponse = await fetch(`http://${app.domain}/reset?cmd=${command.RESET_ALL}`);
     if (rawResponse.status === STATUS.ACCEPTED) {
         const response = await rawResponse.text();
         setScoreboardValues(response);
@@ -254,23 +264,19 @@ worker.addEventListener('message', function(e) {
 
 btnConfig.addEventListener('click', async () => {
     btnStopTimer.click();
-    const rawResponse = await fetch(`http://${app.domain}/config?cmd=${command.GET_CONFIG}`);
-    if (rawResponse.status === STATUS.ACCEPTED) {
-        const response = await rawResponse.text();
-        setConfigValues(response);
-    }
-    else { alert(`No se pudo leer la configuración actual.`); }
+    getConfig();
     divMainWindow.style.display = 'none';
     divConfigWindow.style.display = 'inline';
 });
 
 btnBackToMain.addEventListener('click', () => {
     divMainWindow.style.display = 'inline';
-    divConfigWindow.style.display = 'none';
+    divConfigWindow.style.display = 'none';    
 });
 
 btnSaveConfig.addEventListener('click', async () => {
     let brightness = selectBrightness.selectedIndex+1;
+    let alarmEnable = selectAlarmEnable.selectedIndex;
     let alarmLen = selectAlarmLen.selectedIndex+1;
     let chukkerMM = parseInt(chukkerLenMM.value);
     let chukkerSS = parseInt(chukkerLenSS.value);
@@ -293,7 +299,7 @@ btnSaveConfig.addEventListener('click', async () => {
         return;
     }
     const rawResponse = await fetch(`http://${app.domain}/config?cmd=${command.SET_CONFIG}\
-        &l_bri=${brightness}&a_len=${alarmLen}\
+        &l_bri=${brightness}&a_en=${alarmEnable}&a_len=${alarmLen}\
         &ch_mm=${chukkerMM}&ch_ss=${chukkerSS}\
         &et_mm=${extTimeMM}&et_ss=${extTimeSS}\
         &hf_mm=${halftimeMM}&hf_ss=${halftimeSS}`);
@@ -314,6 +320,7 @@ btnSaveConfig.addEventListener('click', async () => {
 
 // Al cargarse el sitio web, buscar datos del tablero.
 window.addEventListener('load', async () => {
+    await getConfig();
     await refreshScoreboard();
     if (app.timerState === timerStatus.RUNNING) {
         worker.postMessage("stop-server-ping");
@@ -417,12 +424,23 @@ function setOptions() {
         btnUpSecond.disabled = true;
         btnDownSecond.disabled = true;
     }
+    if(selectAlarmEnable.value == 1){
+        btnTriggerHorn.disabled = false;
+        btnTriggerHorn.style.opacity = 1;
+    }
+    else{
+        btnTriggerHorn.disabled = true;
+        btnTriggerHorn.style.opacity = 0.2;
+        btnTriggerHorn.style.background = 'transparent';
+        btnTriggerHorn.style.border = '0px';
+    }
 }
 
 // Actualizar datos de configuración en panel
 function setConfigValues(configString) {
     const data = configString.split(',');
     selectBrightness.selectedIndex = parseInt(data[configIndex.BRIGHTNESS])-1;
+    selectAlarmEnable.selectedIndex = parseInt(data[configIndex.ALARM_EN]);
     selectAlarmLen.selectedIndex = parseInt(data[configIndex.ALARM_LEN])-1;
     chukkerLenMM.value = data[configIndex.CHUKKER_MM];
     chukkerLenSS.value = data[configIndex.CHUKKER_SS].padStart(2, '0');
@@ -430,4 +448,13 @@ function setConfigValues(configString) {
     extTimeLenSS.value = data[configIndex.EXT_TIME_SS].padStart(2, '0');
     halftimeLenMM.value = data[configIndex.HALFTIME_MM];
     halftimeLenSS.value = data[configIndex.HALFTIME_SS].padStart(2, '0');
+}
+
+async function getConfig(){
+    const rawResponse = await fetch(`http://${app.domain}/config?cmd=${command.GET_CONFIG}`);
+    if (rawResponse.status === STATUS.ACCEPTED) {
+        const response = await rawResponse.text();
+        setConfigValues(response);
+    }
+    else { alert(`No se pudo leer la configuración actual.`); }
 }

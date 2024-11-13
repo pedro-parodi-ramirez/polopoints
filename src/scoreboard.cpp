@@ -58,8 +58,8 @@ hw_timer_t *Timer1_cfg = NULL;
 /****************************** DATA TYPES *********************************/
 struct alarm_t{
   bool active = false;
-  bool enabled = true;
-  byte bell_count = 1; // solo se usa para alarma tipo DAC
+  byte bell_count = 1;        // para señal tipo DAC
+  byte secondsActive = 0;     // para señal con bocina
 } alarm_obj;
 
 struct _timer_t{
@@ -79,6 +79,7 @@ struct scoreboard_t{
   } timer;
   byte brightness = 0x0A;
   byte alarmLen = 0x01;
+  byte alarmEnabled = 1;
 } scoreboard;
 
 enum main_state_t{
@@ -110,14 +111,15 @@ enum command_t{
   DEC_CHUKKER         = 6,
   START_TIMER         = 7,
   STOP_TIMER          = 8,
-  RESET_TIMER         = 9,
+  RESET_CHUKKER       = 9,
   SET_CURRENT_TIMER   = 10,
   SET_DEFAULT_TIMER   = 11,
   SET_EXTENDED_TIMER  = 12,
   SET_HALFTIME_TIMER  = 13,
   RESET_ALL           = 14,
   SET_CONFIG          = 15,
-  GET_CONFIG          = 16
+  GET_CONFIG          = 16,
+  TRIGGER_HORN        = 17
 };
 
 enum request_status_t{
@@ -169,7 +171,7 @@ void setDataFrameHeaders(byte *dataFrame);
 void refreshScoreboard(scoreboard_t *scoreboard, byte *dataFrame, byte *bufferTx);
 String getScoreboard_toString(void);
 String getConfig_toString(void);
-bool updateAppConfig(int a_len, int ch_mm, int ch_ss, int et_mm, int et_ss, int hf_mm, int hf_ss);
+bool updateAppConfig(int a_en, int a_len, int ch_mm, int ch_ss, int et_mm, int et_ss, int hf_mm, int hf_ss);
 bool updateBoardConfig(int l_bri);
 void scoreboard_setConfigs (scoreboard_t *scoreboard);
 
@@ -193,10 +195,9 @@ void IRAM_ATTR Timer1_ISR()
       }
     }
   #else
-    static unsigned char segCount = 0;
-    if(++segCount == scoreboard.alarmLen){
+    if(++alarm_obj.secondsActive == scoreboard.alarmLen){
       stopAlarm();
-      segCount = 0;
+      alarm_obj.secondsActive = 0;
     }
   #endif
 }
@@ -332,13 +333,6 @@ void setup()
       cmdReceived = true;
       request->send(STATUS_ACCEPTED);
     }
-    else if(cmd == RESET_TIMER){
-      if(DEBUG){ Serial.println("Request to reset the timer."); }
-      cmdReceived = true;
-      resetChukker();
-      data = getScoreboard_toString();
-      request->send(STATUS_ACCEPTED, "text/plain", data);
-    }
     else{
       if(DEBUG){ Serial.println("Parameter error -> cmd"); }
       request->send(STATUS_BAD_REQUEST);
@@ -421,12 +415,38 @@ void setup()
 
   // Reset tablero a valores default
   server.on("/reset", HTTP_GET, [](AsyncWebServerRequest *request){
+    const int paramQty = request->params();
     String data;
-    if(DEBUG){ Serial.println("Request to reset all scoreboard values."); }
-    resetScoreboard();
-    cmdReceived = true;
-    data = getScoreboard_toString();
-    request->send(STATUS_ACCEPTED, "text/plain", data);
+    if(paramQty < 1){
+      if(DEBUG){ Serial.println("Not enought parameters."); }
+      request->send(STATUS_BAD_REQUEST);
+      return;
+    }
+    if(!(request->hasParam("cmd"))){
+      request->send(STATUS_BAD_REQUEST);
+      return;
+    }
+    AsyncWebParameter* p_0 = request->getParam("cmd");
+    int cmd = (p_0->value()).toInt();
+    if(cmd == RESET_ALL){
+        if(DEBUG){ Serial.println("Request to reset all scoreboard values."); }
+        resetScoreboard();
+        cmdReceived = true;
+        data = getScoreboard_toString();
+        request->send(STATUS_ACCEPTED, "text/plain", data);
+    }
+    else if(cmd == RESET_CHUKKER){
+      if(DEBUG){ Serial.println("Request to reset the timer."); }
+      cmdReceived = true;
+      resetChukker();
+      data = getScoreboard_toString();
+      request->send(STATUS_ACCEPTED, "text/plain", data);
+    }
+    else{
+      if(DEBUG){ Serial.println("Invalid command."); }
+      request->send(STATUS_BAD_REQUEST);
+      return;
+    }
   });
 
   // Obtener datos de tablero como string
@@ -442,6 +462,7 @@ void setup()
     request->send(STATUS_OK);
   });
 
+  // Configuraciones del cartel
   server.on("/config", HTTP_GET, [](AsyncWebServerRequest *request){
     const int paramQty = request->params();
     if(DEBUG){ Serial.println("Request for settings."); }
@@ -463,7 +484,7 @@ void setup()
         request->send(STATUS_BAD_REQUEST);
         return;
       }
-      if(!(request->hasParam("l_bri") && request->hasParam("a_len")
+      if(!(request->hasParam("l_bri") && request->hasParam("a_en") && request->hasParam("a_len")
             && request->hasParam("ch_mm") && request->hasParam("ch_ss")
             && request->hasParam("et_mm") && request->hasParam("et_ss")
             && request->hasParam("hf_mm") && request->hasParam("hf_ss"))){
@@ -471,26 +492,28 @@ void setup()
         return;
       }
       AsyncWebParameter* p_1 = request->getParam("l_bri");
-      AsyncWebParameter* p_2 = request->getParam("a_len");
-      AsyncWebParameter* p_3 = request->getParam("ch_mm");
-      AsyncWebParameter* p_4 = request->getParam("ch_ss");
-      AsyncWebParameter* p_5 = request->getParam("et_mm");
-      AsyncWebParameter* p_6 = request->getParam("et_ss");
-      AsyncWebParameter* p_7 = request->getParam("hf_mm");  
-      AsyncWebParameter* p_8 = request->getParam("hf_ss");
+      AsyncWebParameter* p_2 = request->getParam("a_en");
+      AsyncWebParameter* p_3 = request->getParam("a_len");
+      AsyncWebParameter* p_4 = request->getParam("ch_mm");
+      AsyncWebParameter* p_5 = request->getParam("ch_ss");
+      AsyncWebParameter* p_6 = request->getParam("et_mm");
+      AsyncWebParameter* p_7 = request->getParam("et_ss");
+      AsyncWebParameter* p_8 = request->getParam("hf_mm");  
+      AsyncWebParameter* p_9 = request->getParam("hf_ss");
       int l_bri = (p_1->value()).toInt();
-      int a_len = (p_2->value()).toInt();
-      int ch_mm = (p_3->value()).toInt();
-      int ch_ss = (p_4->value()).toInt();
-      int et_mm = (p_5->value()).toInt();
-      int et_ss = (p_6->value()).toInt();
-      int hf_mm = (p_7->value()).toInt();
-      int hf_ss = (p_8->value()).toInt();
+      int a_en = (p_2->value()).toInt();
+      int a_len = (p_3->value()).toInt();
+      int ch_mm = (p_4->value()).toInt();
+      int ch_ss = (p_5->value()).toInt();
+      int et_mm = (p_6->value()).toInt();
+      int et_ss = (p_7->value()).toInt();
+      int hf_mm = (p_8->value()).toInt();
+      int hf_ss = (p_9->value()).toInt();
       if(!updateBoardConfig(l_bri)){
         if(DEBUG){ Serial.println("Error: board config not updated."); }
         request->send(STATUS_BAD_REQUEST);
       }
-      if(!updateAppConfig(a_len, ch_mm, ch_ss, et_mm, et_ss, hf_mm, hf_ss)){
+      if(!updateAppConfig(a_en, a_len, ch_mm, ch_ss, et_mm, et_ss, hf_mm, hf_ss)){
         if(DEBUG){ Serial.println("Error: app config not updated."); }
         request->send(STATUS_BAD_REQUEST);
       }
@@ -504,6 +527,27 @@ void setup()
       if(DEBUG){ Serial.println("Invalid command."); }
       request->send(STATUS_BAD_REQUEST);
       return;
+    }
+  });
+
+  // Disparar señal sonora
+  server.on("/horn", HTTP_GET, [](AsyncWebServerRequest *request){
+    const int paramQty = request->params();
+    if(paramQty < 1){
+      if(DEBUG){ Serial.println("Not enought parameters."); }
+      request->send(STATUS_BAD_REQUEST);
+      return;
+    }
+    if(!(request->hasParam("cmd"))){
+      request->send(STATUS_BAD_REQUEST);
+      return;
+    }
+    AsyncWebParameter* p_0 = request->getParam("cmd");
+    int cmd = (p_0->value()).toInt();
+    if(cmd == TRIGGER_HORN){
+        if(DEBUG){ Serial.println("Request to trigger horn."); }
+        startAlarm();
+        request->send(STATUS_ACCEPTED);
     }
   });
 
@@ -619,18 +663,21 @@ unsigned int setBufferTx(byte *bufferTx, byte *dataFrame)
 
 // Iniciar alarma
 void startAlarm(){
-  if(alarm_obj.enabled == true){
-    if(DEBUG) Serial.println("Triggering alarm ...");
-    timerStart(Timer1_cfg);
-    #ifdef DAC_ALARM
-      alarm_obj.bell_count = 1;
-      SampleIdx = 0;
-      dac_output_enable(DAC_CHANNEL_1);
-    #else
-      digitalWrite(ALARM_PIN, LOW);
-    #endif
-    alarm_obj.active = true;
-    alarm_obj.enabled = false;
+  if(scoreboard.alarmEnabled) {
+    if(alarm_obj.active == false) {
+      if(DEBUG) Serial.println("Triggering horn ...");
+      #ifdef DAC_ALARM
+        alarm_obj.bell_count = 1;
+        SampleIdx = 0;
+        dac_output_enable(DAC_CHANNEL_1);
+      #else
+        alarm_obj.secondsActive = 0;
+        digitalWrite(ALARM_PIN, LOW);
+      #endif
+      timerStart(Timer1_cfg);
+      alarm_obj.active = true;
+    }
+    else if(DEBUG) Serial.println("Horn already active.");
   }
 }
 
@@ -647,7 +694,7 @@ void stopAlarm(){
       digitalWrite(ALARM_PIN, HIGH);
     #endif
     alarm_obj.active = false;
-    if(DEBUG) Serial.println("Alarm stopped.");
+    if(DEBUG) Serial.println("Horn stopped.");
   }
 }
 
@@ -662,14 +709,12 @@ timer_state_t refreshTimer()
       game_state = EXTENDED_TIME;
       scoreboard.timer.value.mm = scoreboard.timer.extendedtime.mm;
       scoreboard.timer.value.ss = scoreboard.timer.extendedtime.ss;
-      alarm_obj.enabled = true;
       startAlarm();
     }
     else if(game_state == EXTENDED_TIME){
       game_state = HALFTIME;
       scoreboard.timer.value.mm = scoreboard.timer.halftime.mm;
       scoreboard.timer.value.ss = scoreboard.timer.halftime.ss;
-      alarm_obj.enabled = true;
       startAlarm();
     }
     else if(game_state == HALFTIME){
@@ -696,8 +741,6 @@ void startTimer()
     // Iniciar timer
     timerStart(Timer0_cfg);
     timer_state = RUNNING;
-
-    if(alarm_obj.enabled == true) startAlarm();
   }
 }
 
@@ -724,9 +767,7 @@ void resetChukker()
   timer_state = STOPPED;
   game_state = IN_PROGRESS;
 
-  // Se habilita alarma para futuro uso
   stopAlarm();
-  alarm_obj.enabled = true;
 }
 
 // Setear valor en timer
@@ -793,9 +834,6 @@ void resetScoreboard()
   timerWrite(Timer0_cfg, 0);
   timer_state = STOPPED;
   game_state = IN_PROGRESS;
-
-  // Se habilita alarma para futuro uso
-  alarm_obj.enabled = true;
 }
 
 // Actualizar datos en tablero, enviando los datos por serial a placa controladora
@@ -837,6 +875,7 @@ String getScoreboard_toString(void){
 // Transformar la configuración del tablero en cadena concatenada
 String getConfig_toString(void){
   String s = String(scoreboard.brightness);
+  s += "," + String(scoreboard.alarmEnabled);
   s += "," + String(scoreboard.alarmLen);
   s += "," + String(scoreboard.timer.initValue.mm);
   s += "," + String(scoreboard.timer.initValue.ss);
@@ -848,25 +887,27 @@ String getConfig_toString(void){
 }
 
 // Actualizar estructura scoreboard con configuraciones
-bool updateAppConfig(int a_len, int ch_mm, int ch_ss, int et_mm, int et_ss, int hf_mm, int hf_ss){
+bool updateAppConfig(int a_en, int a_len, int ch_mm, int ch_ss, int et_mm, int et_ss, int hf_mm, int hf_ss){
   stopTimer(); stopAlarm();
 
   if(!setTimerValue(ch_mm, ch_ss, SET_DEFAULT_TIMER)) return false;
   if(!setTimerValue(et_mm, et_ss, SET_EXTENDED_TIMER)) return false;
   if(!setTimerValue(hf_mm, hf_ss, SET_HALFTIME_TIMER)) return false;
 
-  // Duracion de alarma sonora
+  // Señal sonora
+  if(a_en < 0) return false;
+  else if(a_en > 0) scoreboard.alarmEnabled = 1;
+  else scoreboard.alarmEnabled = 0;
+  
   if(a_len < 0x01) return false;
   if(a_len > ALARM_MAX_LEN) scoreboard.alarmLen = ALARM_MAX_LEN;
   else scoreboard.alarmLen = a_len;
 
   if(game_state == IN_PROGRESS) {
-    alarm_obj.enabled = true;
     scoreboard.timer.value.mm = scoreboard.timer.initValue.mm;
     scoreboard.timer.value.ss = scoreboard.timer.initValue.ss;
   }
   else if(game_state == EXTENDED_TIME){
-    alarm_obj.enabled = true;
     scoreboard.timer.value.mm = scoreboard.timer.extendedtime.mm;
     scoreboard.timer.value.ss = scoreboard.timer.extendedtime.ss;
   }
@@ -875,21 +916,21 @@ bool updateAppConfig(int a_len, int ch_mm, int ch_ss, int et_mm, int et_ss, int 
     scoreboard.timer.value.ss = scoreboard.timer.halftime.ss;
   }
 
-  if(DEBUG) Serial.println("App settings updated succesfully.");
+  if(DEBUG) Serial.println("App settings updated.");
 
   return true;
 }
 
 // Actualizar configuraciones en placa controladora de LEDs
 bool updateBoardConfig(int l_bri){
-   if(l_bri < 0x00) return false;
+   if(l_bri < 0x01) return false;
    
    // Brillo de leds
   if(l_bri != scoreboard.brightness) newBoardConfig = true;
   if(l_bri > 0x0A) scoreboard.brightness = 0x0A;
   else scoreboard.brightness = l_bri;
 
-  if(DEBUG) Serial.println("Board settings updated succesfully.");
+  if(DEBUG) Serial.println("Board settings updated.");
   return true;
 }
 

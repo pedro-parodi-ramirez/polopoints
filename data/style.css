@@ -12,7 +12,7 @@ body{
 
 h1{
   display: inline-block;
-  font-size: 3.4rem;
+  font-size: 3rem;
   font-family: "Trebuchet MS", Verdana, sans-serif;
   text-shadow:
     1px 1px 1px lightslategray,
@@ -153,7 +153,16 @@ button[disabled]{
 .btn-reset-chukker{
   font-size: 2rem;
   color: black;
-  margin: 0px;
+  margin: 0px 0px 0px 32px;
+  padding: 0px;
+  border: 0px;
+  background-color: transparent;
+}
+
+.btn-trigger-horn {
+  font-size: 2rem;
+  color: black;
+  margin: 0px 32px 0px 0px;
   padding: 0px;
   border: 0px;
   background-color: transparent;
@@ -221,5 +230,5 @@ input{
 }
 
 h2{
-  margin: 14px auto;
+  margin: 10px auto;
 }

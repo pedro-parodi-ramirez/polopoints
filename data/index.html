@@ -66,6 +66,7 @@
                     <button id="down-second" class="btn-up-down-timer">-</button>
                 </div>
                 <hr>
+                <button id="trigger-horn" class="btn-trigger-horn">🔔</button>
                 <button id="reset-chukker" class="btn-reset-chukker">🔄</button>
             </div>
         </div>
@@ -92,7 +93,14 @@
                     </select>
                 </div>
                 <div class="row">
-                    <h2><u>Duración alarma:</u></h2>
+                    <h2><u>Bocina habilitada:</u></h2>
+                    <select name="alarm-enable" id="select-alarm-enable">
+                        <option value="0">No</option>
+                        <option value="1">Si</option>
+                    </select>
+                </div>
+                <div class="row">
+                    <h2><u>Duración bocina:</u></h2>
                     <select name="alarm-len" id="select-alarm-len">
                         <option value="1">1s</option>
                         <option value="2">2s</option>
